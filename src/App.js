@@ -163,12 +163,10 @@ class Clebinho extends Component {
       Number(accumulator) + Number(currentValue);
     let notFilteredValues = [];
     let filteredValues = [];
-    filteredValues.push(values[0].value);
     values.forEach(({ value }) => {
       if (!filteredValues.includes(value)) filteredValues.push(value);
       notFilteredValues.push(value);
     });
-
     const somatoria = notFilteredValues.reduce(reducer);
     const media = (somatoria / qtdItens).toFixed(2);
     let dp = 0;
@@ -176,38 +174,120 @@ class Clebinho extends Component {
       return (dp += Math.pow(value - media, 2));
     });
     dp = Math.sqrt(dp / qtdItens).toFixed(2);
-    const nroClasses = Math.sqrt(qtdItens);
+    let groupedValues = [];
+    let i = 0;
+    let auxVet = [];
+    const nroClasses = Math.floor(Math.sqrt(20));
     console.log(nroClasses);
+    let base = Number(notFilteredValues[0]) + Number(nroClasses);
+    let bases = [base];
+    notFilteredValues.forEach((val, index) => {
+      if (val <= base) {
+        auxVet.push(val);
+      } else {
+        groupedValues[i] = auxVet;
+        i++;
+        auxVet = [];
+        auxVet.push(val);
+        base = Number(val) + Number(nroClasses);
+        bases.push(base);
+      }
+      if (index === notFilteredValues.length - 1) {
+        groupedValues[i] = auxVet;
+      }
+    });
+    console.log({ groupedValues, bases, notFilteredValues });
+
+    let aux = 0;
+    let aux2 = 0;
+
     const table = (
       <table>
         <tbody>
           <tr>
             <th>{campo}</th>
             <th>Freq. Absoluta</th>
+            <th>Freq. Absoluta Acumulada</th>
             <th>Freq. Relativa</th>
+            <th>Freq. Relativa Acumulada</th>
           </tr>
           {filteredValues.map((value, index) => {
             let freqAbsoluta = 0;
             values.forEach(val => {
               if (val.value === value) freqAbsoluta++;
             });
+            let freqAbsAcu = freqAbsoluta + aux;
+            aux = freqAbsAcu;
             let freqRelativa = freqAbsoluta / qtdItens;
+            let freqRelativaAcu = freqAbsoluta / qtdItens + aux2;
+            aux2 = freqRelativaAcu;
             return (
               <tr key={index}>
                 <td>{value}</td>
                 <td>{freqAbsoluta}</td>
+                <td>{freqAbsAcu}</td>
                 <td>{freqRelativa.toFixed(2)}</td>
+                <td>{freqRelativaAcu.toFixed(2)}</td>
               </tr>
             );
           })}
         </tbody>
         <tfoot>
           <tr>
-            <td>Média</td>
-            <td>{media}</td>
+            <th>Total</th>
+            <th>Média</th>
+            <th>Desvio Padrão</th>
           </tr>
           <tr>
-            <td>Desvio Padrão</td>
+            <td>{notFilteredValues.length}</td>
+            <td>{media}</td>
+            <td>{dp}</td>
+          </tr>
+        </tfoot>
+      </table>
+    );
+
+    aux = 0;
+    aux2 = 0;
+
+    const agrupados = (
+      <table>
+        <tbody>
+          <tr>
+            <th>{campo}</th>
+            <th>Freq. Absoluta</th>
+            <th>Freq. Absoluta Acumulada</th>
+            <th>Freq. Relativa</th>
+            <th>Freq. Relativa Acumulada</th>
+          </tr>
+          {groupedValues.map((value, index) => {
+            console.log(value);
+            let range = `${value[0]} - ${value[value.length - 1]}`;
+            let freqAbsAcu = value.length + aux;
+            aux = freqAbsAcu;
+            let freqRelativa = value.length / qtdItens;
+            let freqRelativaAcu = value.length / qtdItens + aux2;
+            aux2 = freqRelativaAcu;
+            return (
+              <tr key={index}>
+                <td>{range}</td>
+                <td>{value.length}</td>
+                <td>{freqAbsAcu}</td>
+                <td>{freqRelativa.toFixed(2)}</td>
+                <td>{freqRelativaAcu.toFixed(2)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th>Total</th>
+            <th>Média</th>
+            <th>Desvio Padrão</th>
+          </tr>
+          <tr>
+            <td>{notFilteredValues.length}</td>
+            <td>{media}</td>
             <td>{dp}</td>
           </tr>
         </tfoot>
@@ -215,6 +295,7 @@ class Clebinho extends Component {
     );
     this.setState({
       dadosNaoAgrupados: table,
+      dadosAgrupados: agrupados,
     });
   }
   render() {
